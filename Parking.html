@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Parking & Traffic Management</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: linear-gradient(to right, #232526, #414345);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background: #00c6ff;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .dashboard {
+            text-align: center;
+            margin: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .zones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 30px;
+        }
+        
+        .zone {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .zone:hover {
+            transform: scale(1.03);
+        }
+        
+        .zone h2 {
+            margin-bottom: 15px;
+            text-align: center;
+            color: #00e5ff;
+        }
+        
+        .row {
+            margin: 12px 0;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            transition: background 0.5s ease;
+        }
+        
+        .row h3 {
+            margin: 0 0 8px;
+        }
+        
+        .slots {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .slot {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+        
+        .slot.empty {
+            background: #4cd964;
+            color: #000;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .slot.filled {
+            background: #ff3b30;
+            color: #fff;
+        }
+        
+        .slot.reserved {
+            background: #ffcc00;
+            color: #000;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 5px #4cd964;
+            }
+            50% {
+                box-shadow: 0 0 15px #4cd964;
+            }
+            100% {
+                box-shadow: 0 0 5px #4cd964;
+            }
+        }
+        
+        .legend {
+            margin: 20px auto;
+            width: 80%;
+            text-align: center;
+        }
+        
+        .legend span {
+            margin: 0 15px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        
+        .legend .empty {
+            background: #4cd964;
+            color: #000;
+        }
+        
+        .legend .filled {
+            background: #ff3b30;
+        }
+        
+        .legend .reserved {
+            background: #ffcc00;
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <header>🚗 Smart Parking & Traffic Management</header>
+
+    <!-- Dashboard summary -->
+    <div class="dashboard" id="dashboardSummary">
+        <h2>Parking Status</h2>
+        <p>Total Capacity: <span id="totalCapacity">0</span> slots</p>
+        <p>Occupied: <span id="occupiedSlots">0</span> | Empty: <span id="emptySlots">0</span></p>
+        <p>Occupancy Rate: <span id="occupancyRate">0%</span></p>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <span class="empty">Empty</span>
+        <span class="filled">Filled</span>
+        <span class="reserved">Reserved</span>
+    </div>
+
+    <!-- Zones -->
+    <div class="zones" id="zonesContainer"></div>
+
+    <script>
+        // Parking data config
+        const zonesConfig = [{
+            zone: "North Parking",
+            rows: [8, 6, 10]
+        }, {
+            zone: "South Parking",
+            rows: [12, 10, 8]
+        }, {
+            zone: "East Parking",
+            rows: [14, 12]
+        }, {
+            zone: "West Parking",
+            rows: [10, 10, 6]
+        }];
+
+        function getRandomStatus() {
+            const statuses = ["empty", "filled", "reserved"];
+            return statuses[Math.floor(Math.random() * statuses.length)];
+        }
+
+        function renderParking() {
+            const container = document.getElementById("zonesContainer");
+            container.innerHTML = "";
+
+            let totalSlots = 0,
+                occupied = 0,
+                empty = 0;
+
+            zonesConfig.forEach(z => {
+                const zoneDiv = document.createElement("div");
+                zoneDiv.className = "zone";
+
+                const title = document.createElement("h2");
+                title.textContent = z.zone;
+                zoneDiv.appendChild(title);
+
+                z.rows.forEach((slotsCount, i) => {
+                    const rowDiv = document.createElement("div");
+                    rowDiv.className = "row";
+
+                    const rowHeader = document.createElement("h3");
+                    rowHeader.textContent = `${z.zone.split(" ")[0]} Row ${i+1}`;
+                    rowDiv.appendChild(rowHeader);
+
+                    const slotsDiv = document.createElement("div");
+                    slotsDiv.className = "slots";
+
+                    let rowEmpty = 0;
+
+                    for (let j = 0; j < slotsCount; j++) {
+                        const slotDiv = document.createElement("div");
+                        const status = getRandomStatus();
+
+                        slotDiv.className = `slot ${status}`;
+                        slotDiv.textContent = status === "filled" ? "🚘" : (status === "reserved" ? "R" : "E");
+
+                        if (status === "empty") rowEmpty++;
+                        if (status !== "empty") occupied++;
+                        if (status === "empty") empty++;
+
+                        // Toggle on click
+                        slotDiv.addEventListener("click", () => {
+                            if (slotDiv.classList.contains("empty")) {
+                                slotDiv.classList.replace("empty", "filled");
+                                slotDiv.textContent = "🚘";
+                                rowEmpty--;
+                                occupied++;
+                                empty--;
+                            } else {
+                                slotDiv.classList.replace("filled", "empty");
+                                slotDiv.textContent = "E";
+                                rowEmpty++;
+                                occupied--;
+                                empty++;
+                            }
+                            updateDashboard(totalSlots, occupied, empty);
+                        });
+
+                        slotsDiv.appendChild(slotDiv);
+                    }
+
+                    const rowStats = document.createElement("p");
+                    rowStats.textContent = `Empty Slots: ${rowEmpty} / ${slotsCount}`;
+                    rowDiv.appendChild(slotsDiv);
+                    rowDiv.appendChild(rowStats);
+
+                    totalSlots += slotsCount;
+                    zoneDiv.appendChild(rowDiv);
+                });
+
+                container.appendChild(zoneDiv);
+            });
+
+            updateDashboard(totalSlots, occupied, empty);
+        }
+
+        function updateDashboard(total, occ, emp) {
+            document.getElementById("totalCapacity").textContent = total;
+            document.getElementById("occupiedSlots").textContent = occ;
+            document.getElementById("emptySlots").textContent = emp;
+            const rate = ((occ / total) * 100).toFixed(1);
+            document.getElementById("occupancyRate").textContent = `${rate}%`;
+        }
+
+        renderParking();
+
+        // Auto refresh every 10 sec
+        setInterval(renderParking, 10000);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket Booking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            background: linear-gradient(-45deg, #6a11cb, #2575fc, #5ee7df, #49d6e6);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 50px 0;
+        }
+        
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            width: 600px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: fadeIn 0.7s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h2 {
+            text-align: center;
+            color: #2575fc;
+            margin-bottom: 25px;
+        }
+        
+        .dates-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .date-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .date-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .date-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            background: #ddd;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #5ee7df, #6a11cb);
+            transition: width 1s ease;
+        }
+        
+        .book-btn {
+            margin-top: 15px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(45deg, #5ee7df, #6a11cb);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .book-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(94, 231, 223, 0.6);
+        }
+        
+        #message {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #28a745;
+            opacity: 0;
+            transition: 0.5s;
+        }
+        
+        .showMessage {
+            opacity: 1;
+            animation: bounceMessage 0.8s;
+        }
+        
+        @keyframes bounceMessage {
+            0% {
+                transform: translateY(-10px);
+            }
+            50% {
+                transform: translateY(5px);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Ticket Booking</h2>
+        <div class="dates-grid" id="datesGrid"></div>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        const datesGrid = document.getElementById('datesGrid');
+        const message = document.getElementById('message');
+
+        // Sample dates data with booking count
+        const dates = [{
+            date: "2025-10-01",
+            booked: 20,
+            capacity: 50
+        }, {
+            date: "2025-10-02",
+            booked: 35,
+            capacity: 50
+        }, {
+            date: "2025-10-03",
+            booked: 10,
+            capacity: 50
+        }, {
+            date: "2025-10-04",
+            booked: 5,
+            capacity: 50
+        }, {
+            date: "2025-10-05",
+            booked: 45,
+            capacity: 50
+        }, {
+            date: "2025-10-06",
+            booked: 25,
+            capacity: 50
+        }];
+
+        function renderDates() {
+            datesGrid.innerHTML = "";
+            dates.forEach((d, index) => {
+                const card = document.createElement('div');
+                card.className = 'date-card';
+                card.innerHTML = `
+                    <h3>${d.date}</h3>
+                    <p>Booked: ${d.booked}/${d.capacity}</p>
+                    <div class="progress-bar"><div class="fill" style="width:${(d.booked/d.capacity)*100}%"></div></div>
+                    <button class="book-btn">Book Ticket</button>
+                `;
+                const btn = card.querySelector('.book-btn');
+                btn.addEventListener('click', () => bookTicket(index));
+                datesGrid.appendChild(card);
+            });
+        }
+
+        function bookTicket(index) {
+            if (dates[index].booked >= dates[index].capacity) {
+                message.innerText = `❌ No tickets available on ${dates[index].date}`;
+                message.classList.add('showMessage');
+                setTimeout(() => message.classList.remove('showMessage'), 2000);
+                return;
+            }
+            dates[index].booked += 1;
+            renderDates();
+            message.innerText = `✅ Ticket booked successfully for ${dates[index].date}!`;
+            message.classList.add('showMessage');
+            setTimeout(() => message.classList.remove('showMessage'), 2000);
+        }
+
+        renderDates();
+    </script>
+</body>
+
+</html>

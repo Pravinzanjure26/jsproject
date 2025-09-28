@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Temple Pilgrim Portal — Demo</title>
+    <style>
+        /* ----------------- Basic layout & theme ----------------- */
+        
+         :root {
+            --bg: #0f1724;
+            --card: #0b1220;
+            --accent: #ffb86b;
+            --muted: #9aa6b2;
+            --glass: rgba(255, 255, 255, 0.03)
+        }
+        
+        * {
+            box-sizing: border-box
+        }
+        
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, "Helvetica Neue", Arial;
+            background: linear-gradient(180deg, #071029 0%, #0f1724 100%);
+            color: #e6eef6
+        }
+        
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 28px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), transparent);
+            backdrop-filter: blur(6px);
+            position: sticky;
+            top: 0;
+            z-index: 50
+        }
+        
+        .brand {
+            display: flex;
+            gap: 12px;
+            align-items: center
+        }
+        
+        .logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #ffc47a, #ff8c4a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3e2814;
+            font-weight: 800;
+            box-shadow: 0 6px 20px rgba(255, 138, 66, 0.16)
+        }
+        
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            margin-left: 16px;
+            font-weight: 600
+        }
+        
+        nav a.active {
+            color: var(--accent)
+        }
+        
+        main {
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 28px;
+            padding: 28px;
+            align-items: start
+        }
+        
+        @media(max-width:1000px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+            .right-col {
+                order: 2
+            }
+        }
+        /* ----------------- Hero ----------------- */
+        
+        .hero {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+            padding: 26px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(4, 6, 12, 0.6)
+        }
+        
+        .hero h1 {
+            margin: 0;
+            font-size: 26px
+        }
+        
+        .hero p {
+            color: var(--muted);
+            margin-top: 8px
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px
+        }
+        
+        .btn {
+            background: var(--accent);
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: #2f1b08;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(255, 139, 61, 0.12);
+            transform: translateY(0);
+            transition: transform .18s
+        }
+        
+        .btn:active {
+            transform: translateY(2px)
+        }
+        
+        .ghost {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--muted);
+            padding: 10px 14px;
+            border-radius: 10px
+        }
+        /* ----------------- Card ----------------- */
+        
+        .card {
+            background: var(--card);
+            padding: 18px;
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(2, 6, 12, 0.6)
+        }
+        
+        .muted {
+            color: var(--muted);
+            font-size: 13px
+        }
+        /* ----------------- Crowd map ----------------- */
+        
+        .map {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-top: 14px
+        }
+        
+        .zone {
+            height: 86px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .18s, box-shadow .18s
+        }
+        
+        .zone:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 40px rgba(2, 6, 12, 0.6)
+        }
+        
+        .zone.low {
+            background: linear-gradient(180deg, #e6fff0, #d7ffe6);
+            color: #00331a
+        }
+        
+        .zone.medium {
+            background: linear-gradient(180deg, #fff7e6, #ffeccf);
+            color: #4f2f03
+        }
+        
+        .zone.high {
+            background: linear-gradient(180deg, #ffdfe0, #ffc1c6);
+            color: #5a0b0e
+        }
+        
+        .zone.veryhigh {
+            background: linear-gradient(180deg, #ffd4ff, #ffb8f5);
+            color: #3b0035
+        }
+        /* ----------------- Booking modal ----------------- */
+        
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 120;
+        }
+        
+        .modal .backdrop {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(0deg, rgba(2, 6, 12, 0.6), rgba(2, 6, 12, 0.8));
+            backdrop-filter: blur(6px)
+        }
+        
+        .modal .panel {
+            position: relative;
+            z-index: 10;
+            min-width: 320px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            padding: 20px;
+            border-radius: 12px
+        }
+        
+        label {
+            display: block;
+            margin-top: 8px;
+            font-size: 13px
+        }
+        
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: transparent;
+            color: inherit;
+            margin-top: 6px
+        }
+        /* ----------------- Assistance widget ----------------- */
+        
+        .assist {
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+        
+        .assist .card {
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+        /* ----------------- Admin panel ----------------- */
+        
+        .stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px
+        }
+        
+        .stat {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            background: var(--glass);
+            text-align: center
+        }
+        /* ----------------- Footer ----------------- */
+        
+        footer {
+            padding: 14px 28px;
+            color: var(--muted);
+            font-size: 13px;
+            text-align: center
+        }
+        /* small animations */
+        
+        .pulse {
+            animation: pulse 2s infinite
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1)
+            }
+            50% {
+                transform: scale(1.03)
+            }
+            100% {
+                transform: scale(1)
+            }
+        }
+        /* responsive tiles for right column */
+        
+        .right-col {
+            position: sticky;
+            top: 86px;
+            height: calc(100vh - 120px);
+            overflow: auto;
+            padding-bottom: 40px
+        }
+        
+        .small {
+            font-size: 13px
+        }
+        /* tiny helper */
+        
+        .hidden {
+            display: none
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand">
+            <div class="logo">TP</div>
+            <div>
+                <div style="font-weight:800">Temple Pilgrim Portal</div>
+                <div class="muted small">Smart visits • Crowd monitoring • Assistance</div>
+            </div>
+        </div>
+        <nav>
+            <a href="#home" class="nav-link active">Home</a>
+            <a href="booking.html" class="nav-link">Booking</a>
+            <a href="crowd_map.html" class="nav-link">Crowd Map</a>
+            <a href="assistence.html" class="nav-link">Assistance</a>
+            <a href="Admin.html" class="nav-link">Admin</a>
+            <a href="Parking.html" class="nav-link">Carbooking</a>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <div class="hero card" id="home">
+                <h1>Welcome — Plan your visit smoothly ✨</h1>
+                <p>Book darshan slots, view real-time crowd zones, request on-ground assistance for elderly or differently-abled visitors, and get automated token/photo confirmation.</p>
+                <div class="controls">
+                    <button class="btn" id="openBooking">Book Darshan Slot</button>
+                    <button class="ghost" id="simulate">Simulate Crowd</button>
+                    <button class="ghost" id="openAssist">Request Assistance</button>
+                </div>
+
+                <div style="display:flex;gap:12px;margin-top:18px;align-items:center">
+                    <div class="card" style="flex:1">
+                        <div class="muted">Next available token</div>
+                        <div style="font-size:22px;font-weight:800;margin-top:6px" id="nextToken">#T-1024</div>
+                        <div class="muted small" style="margin-top:6px">Estimated wait time: <span id="estWait">18 min</span></div>
+                    </div>
+
+                    <div class="card" style="width:320px">
+                        <div class="muted">Quick travel tips</div>
+                        <ul class="muted small">
+                            <li>Arrive 30 min early for security checks</li>
+                            <li>Use digital passes to skip long cash counters</li>
+                            <li>Priority lane available for elderly / disabled</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:14px">
+                    <div class="muted">Crowd Zones (click a zone to reserve a nearby slot or see details)</div>
+                    <div class="map" id="crowdMap">
+                        <!-- JS will populate 5x4 = 20 zones -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:18px" id="bookingSection">
+                <h3>Quick Booking</h3>
+                <div class="muted">Choose slot and enter details</div>
+                <div style="display:flex;gap:10px;margin-top:12px">
+                    <select id="slotSelect">
+            <option value="09:00">09:00 AM</option>
+            <option value="10:00">10:00 AM</option>
+            <option value="11:00">11:00 AM</option>
+          </select>
+                    <button class="btn" id="bookNow">Book Now</button>
+                </div>
+                <div id="bookingResult" class="muted small" style="margin-top:12px"></div>
+            </div>
+
+        </section>
+
+        <aside class="right-col">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div class="muted">Live Status</div>
+                        <div style="font-weight:800;font-size:18px" id="liveStatus">Open • Normal</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div class="muted">Active visitors</div>
+                        <div style="font-weight:800;font-size:18px" id="activeVisitors">420</div>
+                    </div>
+                </div>
+
+                <div class="stats" style="margin-top:12px">
+                    <div class="stat">
+                        <div class="muted small">Avg Wait</div>
+                        <div style="font-weight:800">18 min</div>
+                    </div>
+                    <div class="stat">
+                        <div class="muted small">Slots left</div>
+                        <div style="font-weight:800" id="slotsLeft">32</div>
+                    </div>
+                    <div class="stat">
+                        <div class="muted small">Assistance Req</div>
+                        <div style="font-weight:800" id="assistCount">3</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="card" style="margin-top:14px">
+                <h4>Assistance & Offline Support</h4>
+                <p class="muted small">If someone is handicapped or needs offline support, staff can see requests here and call the on-ground team.</p>
+                <div class="assist">
+                    <div class="muted">Last requests</div>
+                    <div id="assistList" class="muted small">
+                        • Wheelchair for Mr. Patil (Area A2)<br> • Shuttle needed for Mrs. Desai (Entrance 3)
+                    </div>
+                    <button class="btn" id="claimAssist">Assign to Staff</button>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:14px">
+                <h4>Notifications</h4>
+                <div id="notifications" class="muted small">No new alerts</div>
+            </div>
+
+        </aside>
+    </main>
+
+    <footer>Temple Pilgrim Portal — demo UI • This is a prototype with simulated data for design & frontend behaviour.</footer>
+
+    <!-- Booking modal (hidden) -->
+    <div id="modal" class="modal hidden">
+        <div class="backdrop"></div>
+        <div class="panel card">
+            <h3>Book Darshan Slot</h3>
+            <label for="name">Name</label>
+            <input id="name" placeholder="Your full name" />
+            <label for="phone">Phone</label>
+            <input id="phone" placeholder="Mobile number" />
+            <label for="slot">Choose slot</label>
+            <select id="slot">
+        <option>09:00 AM</option>
+        <option>10:00 AM</option>
+        <option>11:00 AM</option>
+      </select>
+            <label><input type="checkbox" id="helpNeeded"/> Require assistance (wheelchair/shuttle)</label>
+            <div style="display:flex;gap:10px;margin-top:12px">
+                <button class="btn" id="confirmBooking">Confirm</button>
+                <button class="ghost" id="closeModal">Cancel</button>
+            </div>
+            <div id="modalResult" class="muted small" style="margin-top:10px"></div>
+        </div>
+    </div>
+
+    <script>
+        // ---------- SPA nav handling ----------
+        const links = document.querySelectorAll('.nav-link');
+
+        function setActive(hash) {
+            links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === hash));
+        }
+        window.addEventListener('hashchange', () => setActive(location.hash || '#home'));
+
+        // ---------- Crowd map generation & simulation ----------
+        const mapEl = document.getElementById('crowdMap');
+        const zones = [];
+        const rows = 4,
+            cols = 5; // 4x5 grid
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const z = document.createElement('div');
+                z.className = 'zone low';
+                z.dataset.idx = zones.length;
+                z.innerHTML = `A${r+1}-${c+1}`;
+                z.addEventListener('click', () => onZoneClick(z));
+                mapEl.appendChild(z);
+                zones.push({
+                    el: z,
+                    density: Math.floor(Math.random() * 25)
+                });
+            }
+        }
+
+        function renderZones() {
+            zones.forEach(z => {
+                const d = z.density;
+                z.el.innerHTML = `${z.el.innerHTML.split('<')[0]}<div style=\"font-size:11px;font-weight:600;margin-top:6px\">${d} ppl</div>`;
+                z.el.classList.remove('low', 'medium', 'high', 'veryhigh');
+                if (d < 20) z.el.classList.add('low');
+                else if (d < 50) z.el.classList.add('medium');
+                else if (d < 100) z.el.classList.add('high');
+                else z.el.classList.add('veryhigh');
+            });
+            document.getElementById('activeVisitors').textContent = zones.reduce((s, z) => s + z.density, 0);
+            document.getElementById('estWait').textContent = Math.max(5, Math.round(zones.reduce((s, z) => s + z.density, 0) / 20)) + ' min';
+        }
+        renderZones();
+
+        function simulateCrowd() {
+            zones.forEach(z => {
+                const change = Math.round((Math.random() - 0.4) * 30);
+                z.density = Math.max(0, z.density + change);
+            });
+            renderZones();
+            notifyIfHotspots();
+        }
+
+        document.getElementById('simulate').addEventListener('click', () => {
+            simulateCrowd();
+            document.getElementById('notifications').textContent = 'Simulation run: crowd levels changed';
+        });
+
+        // auto-simulate every 12s (demo) to show animation/data changes
+        setInterval(simulateCrowd, 12000);
+
+        function onZoneClick(el) {
+            const idx = el.dataset.idx;
+            const zone = zones[idx];
+            alert(`Zone ${el.textContent.split('\n')[0]} — current density ${zone.density} people. You can reserve a nearby slot.`);
+        }
+
+        function notifyIfHotspots() {
+            const hotspots = zones.filter(z => z.density > 120);
+            if (hotspots.length > 0) {
+                document.getElementById('notifications').textContent = `Hotspot alert: ${hotspots.length} zone(s) overloaded`;
+            }
+        }
+
+        // ---------- Booking modal logic ----------
+        const modal = document.getElementById('modal');
+        document.getElementById('openBooking').addEventListener('click', () => {
+            modal.classList.remove('hidden');
+        });
+        document.getElementById('closeModal').addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+        document.getElementById('confirmBooking').addEventListener('click', () => {
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const slot = document.getElementById('slot').value;
+            const help = document.getElementById('helpNeeded').checked;
+            if (!name || !phone) {
+                document.getElementById('modalResult').textContent = 'Please enter name and phone.';
+                return;
+            }
+            // create a fake token id and add basic booking result
+            const token = 'T-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('modalResult').textContent = `Confirmed ${token} • Slot ${slot}`;
+            document.getElementById('bookingResult').textContent = `Booking confirmed for ${name} — Token ${token} — Slot ${slot}`;
+            document.getElementById('slotsLeft').textContent = Math.max(0, parseInt(document.getElementById('slotsLeft').textContent) - 1);
+            if (help) {
+                document.getElementById('assistCount').textContent = parseInt(document.getElementById('assistCount').textContent) + 1;
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('modalResult').textContent = '';
+            }, 1800);
+        });
+
+        document.getElementById('bookNow').addEventListener('click', () => {
+            // emulate a very quick booking flow from the main page
+            const slot = document.getElementById('slotSelect').value;
+            const token = 'T-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('bookingResult').textContent = `Quick booking done — ${token} — ${slot}`;
+            document.getElementById('slotsLeft').textContent = Math.max(0, parseInt(document.getElementById('slotsLeft').textContent) - 1);
+        });
+
+        // ---------- Assistance handling ----------
+        document.getElementById('openAssist').addEventListener('click', () => {
+            location.hash = '#assist';
+            setActive('#assist');
+            document.getElementById('notifications').textContent = 'Assistance requested — staff notified';
+        });
+        document.getElementById('claimAssist').addEventListener('click', () => {
+            document.getElementById('assistList').innerHTML = '• Wheelchair for Mr. Patil (assigned)<br>• Shuttle needed for Mrs. Desai (assigned)';
+            document.getElementById('notifications').textContent = 'Assistance dispatched to on-ground team';
+        });
+
+        // ---------- Simple admin chart (canvas) ----------
+        // create an inline small bar-chart using canvas for reports
+        const adminCard = document.createElement('div');
+        adminCard.className = 'card';
+        adminCard.style.marginTop = '14px';
+        adminCard.innerHTML = '<h4>Admin — Quick Report</h4><canvas id="reportChart" width="360" height="140"></canvas>';
+        document.querySelector('aside.right-col').appendChild(adminCard);
+        const ctx = document.getElementById('reportChart').getContext('2d');
+
+        function drawReport() {
+            ctx.clearRect(0, 0, 360, 140);
+            const data = zones.slice(0, 5).map(z => z.density);
+            const maxv = Math.max(...data, 10);
+            data.forEach((v, i) => {
+                const w = 48;
+                const x = 20 + i * (w + 10);
+                const h = Math.round((v / maxv) * 100);
+                ctx.fillStyle = 'rgba(255,184,107,0.95)';
+                ctx.fillRect(x, 130 - h, w, h);
+                ctx.fillStyle = '#9aa6b2';
+                ctx.font = '12px sans-serif';
+                ctx.fillText(v, x + 10, 124 - h);
+            });
+            ctx.fillStyle = 'rgba(255,255,255,0.04)';
+            ctx.fillRect(0, 130, 360, 1);
+        }
+        setInterval(() => {
+            drawReport();
+        }, 2000);
+
+        // ---------- small helpers ----------
+        document.querySelectorAll('a.nav-link').forEach(a => a.addEventListener('click', (e) => {
+            setActive(a.getAttribute('href'));
+        }));
+        document.getElementById('openBooking').addEventListener('click', () => location.hash = '#booking');
+
+        // initial render updates
+        renderZones();
+        drawReport();
+    </script>
+</body>
+
+</html>
